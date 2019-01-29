@@ -10,4 +10,4 @@
 点击结果：显示所需内管、外边框、内杆，并画出模型图到设定的文件夹
 
 ![竖式](https://github.com/tcm209/GUIProject/blob/master/images/2019-01-25_1.5x1.2_1548399203686.png)
-![横式](https://github.com/tcm209/GUIProject/blob/master/images/2019-01-25_1.5x1.2_1548399203686.png)
+![横式](https://github.com/tcm209/GUIProject/blob/master/images/2019-01-25_1.5x1.2_1548399185673.png)
