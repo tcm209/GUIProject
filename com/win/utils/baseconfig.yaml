@@ -1,0 +1,52 @@
+---
+# 配置文件请严格遵循yaml语法格式，yaml学习地址 https://ansible-tran.readthedocs.io/en/latest/docs/YAMLSyntax.html
+set:
+  # 工具选区
+  # Scrapy
+  # 外框规格
+  side_category_combox:
+    - "25 X 25"
+    - "13 X 25"
+    - "21 X 33"
+    - "15 X 30"
+    - "30 X 30"
+
+  # 长度范围
+  length_range:
+    - max: 400
+    - min: 300
+
+  #宽度范围
+  width_range:
+    - max: 100
+    - min: 90
+
+  #内材料宽度 19*19
+  inner_width: 19
+
+  #内边框误差  内嵌  细管
+  inner_error_max: 20
+  #内边框误差  内嵌  细管
+  inner_error_min: 15
+
+  #垂直方向需要多出
+  vertical_extend_max: 15
+  vertical_extend_max: 20
+
+  #DES加密字符串
+  encrypt_str: ''
+
+  window_style:
+    - "横式"
+    - "竖式"
+  inner_pipe_category:
+    - "方形 19 X 19"
+    - "圆形 19 X 19"
+
+  img_save_file_url : ''
+
+
+
+
+
+
