@@ -3,14 +3,14 @@ import wx
 from com.win.utils.BaseConfigs import _get_yaml
 from com.win.utils.MachineMessage import _get_machine_message
 from com.win.utils.DateUtils import _get_date_formate,_get_time_stamp13
-from com.win.utils.BaseUtils import _check_phone_number,_send_message_to_authoremail
+from com.win.utils.BaseUtils import _is_using,_create_file
 import com.win.client.RegistUI as registDialog
 import re
 import math
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from com.win.utils.GraphUtils import GraphUtils
+from com.win.utils.XmlUtils import _get_element_by_tag,_update_element_val
 class CalculatorGui(wx.Frame):
 
     def __init__(self, parent=None, id=-1, UpdateUI=None):
@@ -46,9 +46,15 @@ class CalculatorGui(wx.Frame):
         self.machine_info = _get_machine_message()
         # 获取日期
         self.regist_date = _get_date_formate()
+        # 获取注册信息状态是否可用
+
 
         self.UpdateUI=UpdateUI
         self.show_window()
+        # 获取认证成功标准
+
+        self.init_isused()
+
 
 
 
@@ -63,15 +69,24 @@ class CalculatorGui(wx.Frame):
         # 初始化menubar
         menubar=wx.MenuBar(style=0)
         filemenu=wx.Menu()
-        newitem = wx.MenuItem(filemenu, wx.ID_NEW, text="注册使用", kind=wx.ITEM_NORMAL)
-        filemenu.Append(newitem)
+        self.newitem = wx.MenuItem(filemenu, wx.ID_NEW, text="注册使用", kind=wx.ITEM_NORMAL)
+        self.uploadfileitem=wx.MenuItem(filemenu,wx.ID_NETWORK,text="导入注册文件",kind=wx.ITEM_NORMAL)
+        self.registfile=wx.MenuItem(filemenu,wx.FD_SAVE,text="生成注册文件",kind=wx.ITEM_NORMAL)
+
+
+
+        filemenu.Append(self.newitem)
+        filemenu.Append(self.uploadfileitem)
+        filemenu.Append(self.registfile)
         filemenu.AppendSeparator()
         quit=wx.MenuItem(filemenu, wx.ID_EXIT, '&Quit\tCtrl+Q')
         filemenu.Append(quit)
-        menubar.Append(filemenu,'&File')
+        menubar.Append(filemenu,'&设置')
         self.SetMenuBar(menubar)
         # 添加menubaritem点击事件
-        self.Bind(wx.EVT_MENU, self.regist_gui, newitem)
+        self.Bind(wx.EVT_MENU, self.regist_gui, self.newitem)
+        self.Bind(wx.EVT_MENU, self.uploadFile_FUN, self.uploadfileitem)
+        self.Bind(wx.EVT_MENU, self.registFileDialog, self.registfile)
 
 
 
@@ -171,6 +186,9 @@ class CalculatorGui(wx.Frame):
         dlg.Destroy()
     #计算结果
     def on_clacu_click(self,event):
+
+
+
         w_val=self.w_input.GetValue()#测量长
         h_val=self.h_input.GetValue()#测量宽
         h_is_number=self.is_number(h_val)
@@ -356,11 +374,57 @@ class CalculatorGui(wx.Frame):
         else:
             print("非法字符")
         return result
+    # 生成注册文件
+    def registFileDialog(self,event):
+        dlg = wx.TextEntryDialog(self, '输入加密文', 'Text Entry Dialog')
+        if dlg.ShowModal() == wx.ID_OK:
+            send_encryptkey=dlg.GetValue()
+            _create_file(send_encryptkey)
+
+        dlg.Destroy()
+    # 上传注册文件
+    def uploadFile_FUN(self, event):
+        fileFilter="Dicom (*.dcm)|*.dcm|" "All files (*.*)|*.*"
+        fileDialog=wx.FileDialog(self,message="选择证书文件", wildcard=fileFilter, style = wx.FD_OPEN)
+        dialogResult=fileDialog.ShowModal()
+        if dialogResult != wx.ID_OK:
+            return
+        path=fileDialog.GetPath()
+        fileDialog.Destroy()
+        print("文件地址：" + path)
+        isusing=_is_using(path)
+        if isusing:
+            self.show_message("认证成功", None, False)
+        else:
+            self.show_message("请确认认证文件是否正确", None, False)
+
 
     def on_but_register(self, event):
         # 类似上上面的查询，只需获取相关内容插入到数据库就可以做出相关的操作
         # 内容与上面内容相似，不再经行书写
         pass
+
+
+    def init_isused(self):
+        mac = _get_element_by_tag("mac")
+        if self.machine_info != mac:
+            _update_element_val("isregisted", 0)
+            self.show_message("如果切换电脑请重新申请", None, False)
+
+        self.isregisted = _get_element_by_tag("isregisted")
+        if self.isregisted == "1":
+
+            self.newitem.Enable(False)
+            self.uploadfileitem.Enable(False)
+            self.registfile.Enable(False)
+            self.calcu_btn.Enable(True)
+        elif self.isregisted == "0":
+            self.newitem.Enable(True)
+            self.uploadfileitem.Enable(True)
+            self.registfile.Enable(True)
+            self.calcu_btn.Enable(False)
+
+
 
     # 输入手机号
     def regist_gui(self,event):
@@ -369,20 +433,7 @@ class CalculatorGui(wx.Frame):
 
         dlg=RegistDialog(self.registFunc,macnumber,regisnumber)
         dlg.Show()
-        # self.UpdateUI(1)
-        # dlg=wx.TextEntryDialog(self.frame, '输入手机号','注册窗口')
-        # if dlg.ShowModal() == wx.ID_OK:
-        #     phonenumber=dlg.GetValue()
-        #     if phonenumber != '':
-        #         isTrue=_check_phone_number(phonenumber)
-        #         if isTrue:
-        #             message=self.machine_info+"_"+self.regist_date+"_"+str(phonenumber)
-        #             _send_message_to_authoremail(message)
-        #             wx.MessageBox("请联系作者申请使用权限", "Message")
-        #
-        #         else:
-        #             wx.MessageBox("请检查手机输入是否正确", "Message")
-        # dlg.Destroy()
+
 
     # 回调函数  获取注册使用的信息
     def registFunc(self,phonenumber,secretkey):
