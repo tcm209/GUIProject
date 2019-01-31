@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator,FormatStrFormatter
-import matplotlib
 from pylab import mpl
 from ProjectURL import _get_project_dir
 import time
+import os
 
 class GraphUtils(object):
 
@@ -256,9 +256,12 @@ class GraphUtils(object):
 
         # 保存图片位置
         img_save_file_url = self.project_dir+"\\images\\"
-        path=img_save_file_url+self.get_filename(input_width,input_height)
+        filename=self.get_filename(input_width,input_height)
+        path=img_save_file_url+filename
         print(path)
-        plt.savefig(path, format='png', bbox_inches='tight', transparent=True, dpi=400)
+        plt.savefig(path, format='png', bbox_inches='tight', transparent=True, dpi=100)
+
+        os.system(path)
     # 文件保存路径
     def get_filename(self,mode_w,mode_h):
         now = int(round(time.time() * 1000))
