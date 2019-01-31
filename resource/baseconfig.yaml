@@ -46,16 +46,14 @@ set:
 
   img_save_file_url : ''
 
-# 加密
-AES_Encrypt_Key : ''
-#
-machine_mac : ''
-
-phone_number : ''
-
-time_number : ''
-
-regist_number : ''
+#email_conf:
+#  port: 465
+#  is_email: True
+#  email: "thenicedawn@163.com"
+#  notice_email_list: "thenicedawn@163.com"
+#  username: "thenicedawn@163.com"
+#  password: "密码"
+#  host: "smtp.163.com"
 
 
 
