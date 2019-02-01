@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import wx
-from com.win.utils.BaseUtils import _check_phone_number
-from com.win.utils.MachineMessage import _get_machine_message
+from com.win.utils.BaseUtils import _check_phone_number,hmac_encrypt
 from com.win.utils.DateUtils import _get_time_stamp13,_get_date_formate,_get_time_stamp16
 from com.win.utils.BaseConfigs import _get_yaml
 from com.win.utils.PrpcryptUtils import prpcrypt
 from com.win.utils.XmlUtils import _update_element_val,_get_element_by_tag
-from com.win.utils.BaseUtils import _send_message_to_authoremail
-import json
-
 
 class RegistUI(wx.Dialog):
 
@@ -65,7 +60,7 @@ class RegistUI(wx.Dialog):
         if phonenumber != '':
             isTrue=_check_phone_number(phonenumber)
             if isTrue:
-                encrypt_str = '{"MAC":"' + self.mac + '" ,"PHONE": "' + str(phonenumber) + '","TIMENUMBER": "' + str(timenumber) + '","REGISTDATE":"' + registdate + '","KEY_ENCRY":"' + key_encry + '"}'
+                encrypt_str = '{"MAC":"' + self.mac + '" ,"PHONE": "' + str(phonenumber) + '","TIMENUMBER": "' + str(timenumber) + '","REGISTDATE":"' + registdate + '","KEY_ENCRY":"' + key_encry + '","AUTHOR":"TOUCHME209"}'
                 #本地加密 加密工具
                 prpcrypttool = prpcrypt()
                 encrypt_text = prpcrypttool.encrypt(encrypt_str,key_encry)
@@ -73,7 +68,6 @@ class RegistUI(wx.Dialog):
                 sendkey = prpcrypttool.get_random_secret()
 
                 # 发送加密
-
                 send_encryptkey = prpcrypttool.encrypt(encrypt_str,sendkey)
                 sskeylen=len(sendkey)
 
@@ -93,10 +87,10 @@ class RegistUI(wx.Dialog):
         _update_element_val("phonenumber", str(phonenumber))
         _update_element_val("encryptstr", encrypt_text)
 
-        _update_element_val("mac", mac)
-        _update_element_val("registdate", registdate)
-        _update_element_val("timenumber", timenumber)
-        _update_element_val("key_encry", key_encry)
+        _update_element_val("mac", hmac_encrypt(mac))
+        _update_element_val("registdate", hmac_encrypt(registdate))
+        _update_element_val("timenumber", hmac_encrypt(str(timenumber)))
+        _update_element_val("key_encry", hmac_encrypt(str(key_encry)))
         _update_element_val("isregisted", 0)
 
 

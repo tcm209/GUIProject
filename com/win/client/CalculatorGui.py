@@ -3,7 +3,7 @@ import wx
 from com.win.utils.BaseConfigs import _get_yaml
 from com.win.utils.MachineMessage import _get_machine_message
 from com.win.utils.DateUtils import _get_date_formate,_get_time_stamp13
-from com.win.utils.BaseUtils import _is_using,_create_file
+from com.win.utils.BaseUtils import _is_using,_create_file,_create_log_file,hmac_encrypt
 import com.win.client.RegistUI as registDialog
 import re
 import math
@@ -11,10 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from com.win.utils.GraphUtils import GraphUtils
 from com.win.utils.XmlUtils import _get_element_by_tag,_update_element_val
+from ProjectURL import _get_project_dir
+
 class CalculatorGui(wx.Frame):
 
     def __init__(self, parent=None, id=-1, UpdateUI=None):
-        wx.Frame.__init__(self, parent, id, title='登录界面', size=(600, 400), pos=(500, 200))
+        wx.Frame.__init__(self, parent, id, title='PY模型图', size=(600, 400), pos=(500, 200),style=(wx.MINIMIZE_BOX|wx.CAPTION|wx.CLOSE_BOX))
+
 
         self.base_configs = _get_yaml()
         self.l_f_y = 30  # 第一行 y
@@ -51,6 +54,7 @@ class CalculatorGui(wx.Frame):
 
         self.UpdateUI=UpdateUI
         self.show_window()
+
         # 获取认证成功标准
 
         self.init_isused()
@@ -63,7 +67,10 @@ class CalculatorGui(wx.Frame):
 
     #显示窗体
     def show_window(self):
-
+        # 设置图标
+        iconpath = _get_project_dir() + "\\images\\logo.ico"
+        self.icon = wx.Icon(iconpath, wx.BITMAP_TYPE_ICO)
+        self.SetIcon(self.icon)
         panel = wx.Panel(self,-1)
         font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)#字体样式
         # 初始化menubar
@@ -71,22 +78,24 @@ class CalculatorGui(wx.Frame):
         filemenu=wx.Menu()
         self.newitem = wx.MenuItem(filemenu, wx.ID_NEW, text="注册使用", kind=wx.ITEM_NORMAL)
         self.uploadfileitem=wx.MenuItem(filemenu,wx.ID_NETWORK,text="导入注册文件",kind=wx.ITEM_NORMAL)
-        self.registfile=wx.MenuItem(filemenu,wx.FD_SAVE,text="生成注册文件",kind=wx.ITEM_NORMAL)
-
+        # self.registfile=wx.MenuItem(filemenu,wx.FD_SAVE,text="生成注册文件",kind=wx.ITEM_NORMAL)
+        quitMENU = wx.MenuItem(filemenu, wx.ID_EXIT, '退出')
 
 
         filemenu.Append(self.newitem)
         filemenu.Append(self.uploadfileitem)
-        filemenu.Append(self.registfile)
+        # filemenu.Append(self.registfile)
         filemenu.AppendSeparator()
-        quit=wx.MenuItem(filemenu, wx.ID_EXIT, '&Quit\tCtrl+Q')
-        filemenu.Append(quit)
+        filemenu.Append(quitMENU)
         menubar.Append(filemenu,'&设置')
         self.SetMenuBar(menubar)
+
         # 添加menubaritem点击事件
         self.Bind(wx.EVT_MENU, self.regist_gui, self.newitem)
         self.Bind(wx.EVT_MENU, self.uploadFile_FUN, self.uploadfileitem)
-        self.Bind(wx.EVT_MENU, self.registFileDialog, self.registfile)
+        # self.Bind(wx.EVT_MENU, self.registFileDialog, self.registfile)
+        self.Bind(wx.EVT_MENU_CLOSE,self.onclose,quitMENU)
+        self.Bind(wx.EVT_CLOSE,self.ui_closed)
 
 
 
@@ -186,9 +195,7 @@ class CalculatorGui(wx.Frame):
         dlg.Destroy()
     #计算结果
     def on_clacu_click(self,event):
-
-
-
+        is_show_model=True
         w_val=self.w_input.GetValue()#测量长
         h_val=self.h_input.GetValue()#测量宽
         h_is_number=self.is_number(h_val)
@@ -217,6 +224,9 @@ class CalculatorGui(wx.Frame):
         if out_line_spec_val == "":
             self.show_message("请选择外框规格", None, False)
             return
+        if measure_w_float > 3200 or measure_h_float > 3200 or measure_w_float<500 or measure_h_float<500:
+            is_show_model=False
+            self.show_message("在试用版测量长、宽大于3500不显示效果图", None, False)
         # 外边框规格
         start_index_out_line_spec=out_line_spec_val.index("X")
         end_index_out_line_spec=len(out_line_spec_val)
@@ -239,11 +249,11 @@ class CalculatorGui(wx.Frame):
             #总长 1500 内管19x19 间距 100
             space_width =self.base_configs['set']['width_range'][0]['max']#间距100
             inner_pipe_count = self.on_calcute_result(measure_h_float,out_line_spec_num_show,space_width,inner_pipe_spec_num)
-            print("内管"+str(inner_pipe_count)+"\n")
+            _create_log_file("内管"+str(inner_pipe_count))
             #总长2000 内杆25x25 间距 400
             space_width = self.base_configs['set']['length_range'][0]['max']  # 间距400
             inner_rod_count = self.on_calcute_result(measure_w_float,out_line_spec_num_show,space_width,inner_rod_spec_num_show)
-            print("内杆" + str(inner_rod_count) + "\n")
+            _create_log_file("内杆" + str(inner_rod_count) )
             #竖着多处一点20
             measure_h_float_result_extend = measure_h_float+self.base_configs['set']['vertical_extend_max'] # 垂直方向多处20mm
             measure_h_rod_float_result = measure_h_float-2*out_line_spec_num_show # 内杆
@@ -252,21 +262,22 @@ class CalculatorGui(wx.Frame):
                       inner_rod_spec_val,measure_h_rod_float_result,inner_rod_count,inner_pipe_spec_val,
                       measure_w_pipe_float_result,inner_pipe_count)
             #画图
-            input_width=measure_w_float/1000
-            input_height=measure_h_float/1000
-            horizontal_num=math.ceil(inner_pipe_count)+2  # 19x19
-            vertical_num=math.ceil(inner_rod_count)+2  # 25x25
-            main_pipe_w=out_line_spec_num_show/1000  # 主管宽 换算成m
-            inner_rod_w=inner_rod_spec_num_show/1000  #内杆 25
-            inner_pipe_w=inner_pipe_spec_num/1000  # 内管宽19 换算成m
+            if is_show_model:
+                input_width=measure_w_float/1000
+                input_height=measure_h_float/1000
+                horizontal_num=math.ceil(inner_pipe_count)+2  # 19x19
+                vertical_num=math.ceil(inner_rod_count)+2  # 25x25
+                main_pipe_w=out_line_spec_num_show/1000  # 主管宽 换算成m
+                inner_rod_w=inner_rod_spec_num_show/1000  #内杆 25
+                inner_pipe_w=inner_pipe_spec_num/1000  # 内管宽19 换算成m
 
-            extend_w=self.base_configs['set']['vertical_extend_max']/1000
-            self.graphTool.draw_graph(input_width,input_height,
-                                      horizontal_num,vertical_num,
-                                      main_pipe_w,inner_rod_w,inner_pipe_w,
-                                      extend_w,"横式",
-                                      out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
-                                      )
+                extend_w=self.base_configs['set']['vertical_extend_max']/1000
+                self.graphTool.draw_graph(input_width,input_height,
+                                          horizontal_num,vertical_num,
+                                          main_pipe_w,inner_rod_w,inner_pipe_w,
+                                          extend_w,"横式",
+                                          out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
+                                          )
 
 
 
@@ -275,11 +286,11 @@ class CalculatorGui(wx.Frame):
             #总长 1500 内杆 25x25 间距 400
             space_width=self.base_configs['set']['length_range'][0]['max']  # 间距400
             inner_rod_count=self.on_calcute_result(measure_h_float,out_line_spec_num_show,space_width,inner_rod_spec_num_show)
-            print("内杆" + str(inner_rod_count) + "\n")
+            _create_log_file("内杆" + str(inner_rod_count))
             #总长 2000 内管19 x 19 间距100
             space_width=self.base_configs['set']['width_range'][0]['max']#间距100
             inner_pipe_count=self.on_calcute_result(measure_w_float,out_line_spec_num_show,space_width,inner_pipe_spec_num)
-            print("内管" + str(inner_pipe_count) + "\n")
+            _create_log_file("内管" + str(inner_pipe_count))
             measure_h_float_result_extend = measure_h_float + self.base_configs['set'][
                 'vertical_extend_max']  # 垂直方向多处20mm
             measure_w_rod_float_result = measure_w_float - 2 * out_line_spec_num_show #内杆
@@ -289,21 +300,22 @@ class CalculatorGui(wx.Frame):
                                inner_rod_spec_val, measure_w_rod_float_result, inner_rod_count, inner_pipe_spec_val,
                                measure_h_pipe_float_result, inner_pipe_count)
 
-            input_width = measure_w_float / 1000
-            input_height = measure_h_float / 1000
-            horizontal_num = math.ceil(inner_rod_count) + 2  # 19x19
-            vertical_num = math.ceil(inner_pipe_count) + 2  # 25x25
-            main_pipe_w = out_line_spec_num_show / 1000  # 主管宽 换算成m
-            inner_rod_w = inner_rod_spec_num_show / 1000  # 内管宽25 换算成m
-            inner_pipe_w = inner_pipe_spec_num/1000  # 内管 19
+            if is_show_model:
+                input_width = measure_w_float / 1000
+                input_height = measure_h_float / 1000
+                horizontal_num = math.ceil(inner_rod_count) + 2  # 19x19
+                vertical_num = math.ceil(inner_pipe_count) + 2  # 25x25
+                main_pipe_w = out_line_spec_num_show / 1000  # 主管宽 换算成m
+                inner_rod_w = inner_rod_spec_num_show / 1000  # 内管宽25 换算成m
+                inner_pipe_w = inner_pipe_spec_num/1000  # 内管 19
 
-            extend_w = self.base_configs['set']['vertical_extend_max'] / 1000
-            self.graphTool.draw_graph(input_width, input_height,
-                                      horizontal_num, vertical_num,
-                                      main_pipe_w,inner_rod_w,inner_pipe_w,
-                                      extend_w,"竖式",
-                                      out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
-                                      )
+                extend_w = self.base_configs['set']['vertical_extend_max'] / 1000
+                self.graphTool.draw_graph(input_width, input_height,
+                                          horizontal_num, vertical_num,
+                                          main_pipe_w,inner_rod_w,inner_pipe_w,
+                                          extend_w,"竖式",
+                                          out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
+                                          )
 
     #total_len 总长
     #out_line_width 外边框宽度
@@ -332,20 +344,20 @@ class CalculatorGui(wx.Frame):
 
         #外框选择
     def on_out_line_spec_Box_selected(self,event):
-        print("外框选择")
+        _create_log_file("外框选择")
 
 
     #内杆规格
     def on_inner_rod_spec_Box_selected(self,event):
-        print("内杆规格")
+        _create_log_file("内杆规格")
 
 
     #内管规格
     def on_inner_pipe_spec_Box_selected(self,event):
-        print("内管选择")
+        _create_log_file("内管选择")
     #类型选择
     def on_window_category_Box_selected(self,event):
-        print("类型选择")
+        _create_log_file("类型选择")
 
 
 
@@ -370,9 +382,9 @@ class CalculatorGui(wx.Frame):
         compilestr=re.compile(r'^([1-9]\d*|0)(\.\d{1,2})?$')
         result=compilestr.match(val)
         if result:
-            print("数字")
+            _create_log_file("数字")
         else:
-            print("非法字符")
+            _create_log_file("非法字符")
         return result
     # 生成注册文件
     def registFileDialog(self,event):
@@ -391,10 +403,10 @@ class CalculatorGui(wx.Frame):
             return
         path=fileDialog.GetPath()
         fileDialog.Destroy()
-        print("文件地址：" + path)
+        _create_log_file("文件地址：" + path)
         isusing=_is_using(path)
         if isusing:
-            self.show_message("认证成功", None, False)
+            self.show_message("认证成功,请重新打开", None, False)
         else:
             self.show_message("请确认认证文件是否正确", None, False)
 
@@ -407,7 +419,8 @@ class CalculatorGui(wx.Frame):
 
     def init_isused(self):
         mac = _get_element_by_tag("mac")
-        if self.machine_info != mac:
+        nowmac=hmac_encrypt(self.machine_info)
+        if  nowmac!= mac:
             _update_element_val("isregisted", 0)
             self.show_message("如果切换电脑请重新申请", None, False)
 
@@ -416,12 +429,12 @@ class CalculatorGui(wx.Frame):
 
             self.newitem.Enable(False)
             self.uploadfileitem.Enable(False)
-            self.registfile.Enable(False)
+            # self.registfile.Enable(False)
             self.calcu_btn.Enable(True)
         elif self.isregisted == "0":
             self.newitem.Enable(True)
             self.uploadfileitem.Enable(True)
-            self.registfile.Enable(True)
+            # self.registfile.Enable(True)
             self.calcu_btn.Enable(False)
 
 
@@ -433,12 +446,21 @@ class CalculatorGui(wx.Frame):
 
         dlg=RegistDialog(self.registFunc,macnumber,regisnumber)
         dlg.Show()
+    # 关闭事件
+    def ui_closed(self,event):
+        ret = wx.MessageBox('是否关闭', '是', wx.OK | wx.CANCEL)
+        if ret == wx.OK:
+            # do something here...
+            event.Skip()
+
+    def onclose(self,event):
+        self.Close()
 
 
     # 回调函数  获取注册使用的信息
     def registFunc(self,phonenumber,secretkey):
-        print(phonenumber)
-        print(secretkey)
+        _create_log_file(phonenumber)
+        _create_log_file(secretkey)
 
 
 
