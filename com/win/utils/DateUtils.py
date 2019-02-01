@@ -7,6 +7,15 @@ def _get_date_formate():
     now = int(round(time.time() * 1000))
     nowformate = time.strftime('%Y-%m-%d', time.localtime(now / 1000))
     return nowformate
+# 获取日志格式
+def _get_date_formate_unline():
+    nowdate=time.strftime("%Y%m%d", time.localtime())
+    return nowdate
+
+# 日志显示事件
+def _get_date_formate_line():
+    nowdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    return nowdate
 
 #   获取13位时间戳
 def _get_time_stamp13():
@@ -39,4 +48,5 @@ def _get_time_stamp16():
 
 
 if __name__=="__main__":
-    _get_date_formate()
+    st=_get_date_formate_unline()
+    print(st)

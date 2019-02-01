@@ -7,6 +7,9 @@ from email.header import Header
 from ProjectURL import _get_project_dir
 from com.win.utils.XmlUtils import _update_element_val,_get_element_by_tag
 from com.win.utils.PrpcryptUtils import prpcrypt
+from com.win.utils.DateUtils import _get_date_formate_unline,_get_date_formate_line
+import psutil
+import hmac
 
 # 验证手机号是否正确
 def _check_phone_number(phonenumber=None):
@@ -81,10 +84,43 @@ def _is_using(path):
     else:
         return False
 
+# 创建日志文件
+def _create_log_file(txt):
+    logtxt=_get_date_formate_line()+"："+txt+"\n"
+    filename = _get_date_formate_unline()
+    path=_get_project_dir()+"\\log\\"+filename+".log"
+    logfile=open(path,mode='a',encoding='utf-8')
+    logfile.writelines(logtxt)
+    logfile.close()
+# 是否允许一台电脑执行多个
+def _is_stoped():
+    i = 0
+    try:
+        pids = psutil.pids()
+        for pid in pids:
+            p = psutil.Process(pid)
+
+            pname = p.name()
+            if pname == "MainUI.exe":
+                i = i + 1
+    except:
+        i = 404
+        _create_log_file("读取异常，关闭重新打开")
+    if i > 2:
+        return False
+    else:
+        return True
+
+# mac加密配置文件xml
+def hmac_encrypt(txt):
+  h = hmac.new('touchme209'.encode('utf-8'))
+  h.update(txt.encode('utf-8'))
+  hstr=h.hexdigest()
+  return hstr
 
 
 if __name__ == '__main__':
-    _create_file("asdasdadasssssssssssssssssss")
+    _create_log_file("asdasdadasssssssssssssssssss")
 
 
 

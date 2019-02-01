@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-import os
 import yaml
 from ProjectURL import _get_project_dir
 

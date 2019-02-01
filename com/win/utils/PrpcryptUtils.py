@@ -3,14 +3,11 @@ from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 import random
 import base64
-from com.win.utils.XmlUtils import _update_element_val,_get_element_by_tag
-
-
 # 加密工具
 class prpcrypt():
 
     def __init__(self):
-        print("初始化加密文件")
+
         self.mode = AES.MODE_CBC
 
 

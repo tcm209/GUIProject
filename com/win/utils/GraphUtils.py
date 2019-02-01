@@ -5,12 +5,11 @@ from pylab import mpl
 from ProjectURL import _get_project_dir
 import time
 import os
+from com.win.utils.BaseUtils import  _create_log_file
 
 class GraphUtils(object):
 
     def __init__(self):
-
-        print("初始化参数")
         self.x_min = -1000
         self.y_min = -1000
         self.y_max = 3500
@@ -258,15 +257,26 @@ class GraphUtils(object):
         img_save_file_url = self.project_dir+"\\images\\"
         filename=self.get_filename(input_width,input_height)
         path=img_save_file_url+filename
-        print(path)
-        plt.savefig(path, format='png', bbox_inches='tight', transparent=True, dpi=100)
+        _create_log_file(path)
+
+
+        plt.axis('off')
+        fig = plt.gcf()
+
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.margins(0, 0)
+        fig.savefig(path, format='jpg', transparent=True, dpi=300, pad_inches=0)
+
+        # plt.savefig(path, format='jpg', bbox_inches='tight', transparent=True, dpi=300)
 
         os.system(path)
     # 文件保存路径
     def get_filename(self,mode_w,mode_h):
         now = int(round(time.time() * 1000))
         nowformate=time.strftime('%Y-%m-%d',time.localtime(now/1000))
-        filename=str(nowformate)+"_"+str(mode_w)+"x"+str(mode_h)+"_"+str(now)+".png"
+        filename=str(nowformate)+"_"+str(mode_w)+"x"+str(mode_h)+"_"+str(now)+".jpg"
         return filename
 
     # input_length : 输入长度

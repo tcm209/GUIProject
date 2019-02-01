@@ -1,9 +1,6 @@
 # -*- coding: utf8 -*-
 import xml.dom.minidom
-import os
 from ProjectURL import _get_project_dir
-
-
 #   获取element节点数据
 def _get_element_by_tag(tagname):
     path = _get_project_dir() + "\\resource\\comfig.xml"
@@ -19,8 +16,9 @@ def _update_element_val(tagname,updateval):
     root = dom.documentElement
     elementnode = root.getElementsByTagName(tagname)[0]
     elementnode.firstChild.data=updateval
-    with open(path,'w') as fh:
-        dom.writexml(fh,encoding='utf-8')
+    fh=open(path,'w')
+    dom.writexml(fh,encoding='utf-8')
+    fh.close()
 
 
 
