@@ -16,6 +16,10 @@ def _get_date_formate_unline():
 def _get_date_formate_line():
     nowdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     return nowdate
+# 获取时间 请确到月份
+def _get_date_for_mounth():
+    mounth = time.strftime("%Y-%m", time.localtime())
+    return mounth
 
 #   获取13位时间戳
 def _get_time_stamp13():

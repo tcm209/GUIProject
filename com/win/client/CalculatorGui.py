@@ -9,9 +9,10 @@ import re
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from com.win.utils.GraphUtils import GraphUtils
+# from com.win.utils.GraphUtils import GraphUtils
 from com.win.utils.XmlUtils import _get_element_by_tag,_update_element_val
 from ProjectURL import _get_project_dir
+from com.win.test.Test import GraphUtils
 
 class CalculatorGui(wx.Frame):
 
@@ -263,21 +264,23 @@ class CalculatorGui(wx.Frame):
                       measure_w_pipe_float_result,inner_pipe_count)
             #画图
             if is_show_model:
-                input_width=measure_w_float/1000
-                input_height=measure_h_float/1000
-                horizontal_num=math.ceil(inner_pipe_count)+2  # 19x19
-                vertical_num=math.ceil(inner_rod_count)+2  # 25x25
-                main_pipe_w=out_line_spec_num_show/1000  # 主管宽 换算成m
-                inner_rod_w=inner_rod_spec_num_show/1000  #内杆 25
-                inner_pipe_w=inner_pipe_spec_num/1000  # 内管宽19 换算成m
+                pass
+            input_width=measure_w_float/1000
+            input_height=measure_h_float/1000
+            horizontal_num=math.ceil(inner_pipe_count)+2  # 19x19
+            vertical_num=math.ceil(inner_rod_count)+2  # 25x25
+            main_pipe_w=out_line_spec_num_show/1000  # 主管宽 换算成m
+            inner_rod_w=inner_rod_spec_num_show/1000  #内杆 25
+            inner_pipe_w=inner_pipe_spec_num/1000  # 内管宽19 换算成m
 
-                extend_w=self.base_configs['set']['vertical_extend_max']/1000
-                self.graphTool.draw_graph(input_width,input_height,
-                                          horizontal_num,vertical_num,
-                                          main_pipe_w,inner_rod_w,inner_pipe_w,
-                                          extend_w,"横式",
-                                          out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
-                                          )
+            extend_w=self.base_configs['set']['vertical_extend_max']/1000
+            self.graphTool.draw_graph(input_width,input_height,
+                                      horizontal_num,vertical_num,
+                                      main_pipe_w,inner_rod_w,inner_pipe_w,
+                                      extend_w,"横式",
+                                      out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
+                                      )
+
 
 
 
@@ -301,21 +304,22 @@ class CalculatorGui(wx.Frame):
                                measure_h_pipe_float_result, inner_pipe_count)
 
             if is_show_model:
-                input_width = measure_w_float / 1000
-                input_height = measure_h_float / 1000
-                horizontal_num = math.ceil(inner_rod_count) + 2  # 19x19
-                vertical_num = math.ceil(inner_pipe_count) + 2  # 25x25
-                main_pipe_w = out_line_spec_num_show / 1000  # 主管宽 换算成m
-                inner_rod_w = inner_rod_spec_num_show / 1000  # 内管宽25 换算成m
-                inner_pipe_w = inner_pipe_spec_num/1000  # 内管 19
+                pass
+            input_width = measure_w_float / 1000
+            input_height = measure_h_float / 1000
+            horizontal_num = math.ceil(inner_rod_count) + 2  # 19x19
+            vertical_num = math.ceil(inner_pipe_count) + 2  # 25x25
+            main_pipe_w = out_line_spec_num_show / 1000  # 主管宽 换算成m
+            inner_rod_w = inner_rod_spec_num_show / 1000  # 内管宽25 换算成m
+            inner_pipe_w = inner_pipe_spec_num/1000  # 内管 19
 
-                extend_w = self.base_configs['set']['vertical_extend_max'] / 1000
-                self.graphTool.draw_graph(input_width, input_height,
-                                          horizontal_num, vertical_num,
-                                          main_pipe_w,inner_rod_w,inner_pipe_w,
-                                          extend_w,"竖式",
-                                          out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
-                                          )
+            extend_w = self.base_configs['set']['vertical_extend_max'] / 1000
+            self.graphTool.draw_graph(input_width, input_height,
+                                      horizontal_num, vertical_num,
+                                      main_pipe_w,inner_rod_w,inner_pipe_w,
+                                      extend_w,"竖式",
+                                      out_line_spec_val,inner_rod_spec_val,inner_pipe_spec_val
+                                      )
 
     #total_len 总长
     #out_line_width 外边框宽度
